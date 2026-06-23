@@ -1,0 +1,17 @@
+.env
+# Env files
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
+Thumbs.db
