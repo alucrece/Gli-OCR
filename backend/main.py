@@ -1,15 +1,10 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from app.database import engine, Base
+from app.models import User, Bien, Locataire
 
-app = FastAPI(title="GLI-OCR API", version="1.0.0")
+Base.metadata.create_all(bind=engine)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title="GLI-OCR API")
 
 @app.get("/")
 def ping():
