@@ -26,22 +26,23 @@ const Navbar: React.FC = () => {
         <p>Gestion locative intelligente</p>
       </div>
 
-      <nav className="sidebar-nav">
-        {navItems.map((item) => (
-          <a
-            key={item.path}
-            href={item.path}
-            className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
-            onClick={(e: React.MouseEvent) => {
-              e.preventDefault();
-              navigate(item.path);
-            }}
-          >
-            <span>{item.icon}</span>
-            <span>{item.label}</span>
-          </a>
-        ))}
-      </nav>
+      <nav className="sidebar-nav" aria-label="Navigation principale">
+      {navItems.map((item) => (
+        <a
+          key={item.path}
+          href={item.path}
+          className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+          aria-current={location.pathname === item.path ? 'page' : undefined}
+          onClick={(e: React.MouseEvent) => {
+            e.preventDefault();
+            navigate(item.path);
+          }}
+        >
+          <span aria-hidden="true">{item.icon}</span>
+          <span>{item.label}</span>
+        </a>
+      ))}
+    </nav>
 
       <div className="sidebar-footer">
         <p>{user?.prenom} {user?.nom}</p>
