@@ -9,6 +9,7 @@ import Biens from './pages/Biens';
 import Locataires from './pages/Locataires';
 import Quittances from './pages/Quittances';
 import './index.css';
+import Monitoring from './pages/Monitoring';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -38,6 +39,7 @@ const App: React.FC = () => {
           <Route path="/biens" element={<PrivateRoute><Biens /></PrivateRoute>} />
           <Route path="/locataires" element={<PrivateRoute><Locataires /></PrivateRoute>} />
           <Route path="/quittances" element={<PrivateRoute><Quittances /></PrivateRoute>} />
+          <Route path="/monitoring" element={<PrivateRoute><Monitoring /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </BrowserRouter>
