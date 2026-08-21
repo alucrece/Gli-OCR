@@ -3,3 +3,4 @@ from app.models.bien import Bien
 from app.models.locataire import Locataire
 from app.models.quittance import Quittance
 from app.models.anomalie import Anomalie
+from app.models.paiement import Paiement
