@@ -148,13 +148,35 @@ const Paiements: React.FC = () => {
     <div>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h2>Paiements de loyer</h2>
-          <p>{paiements.length} paiement(s) enregistré(s)</p>
+            <h2>Paiements de loyer</h2>
+            <p>{paiements.length} paiement(s) enregistré(s)</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Annuler' : '+ Enregistrer un paiement'}
-        </button>
-      </div>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button
+            className="btn btn-secondary"
+            onClick={async () => {
+                const annee = new Date().getFullYear();
+                try {
+                const response = await api.get(`/export/fiscal/${annee}`, { responseType: 'blob' });
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `fiscal_${annee}.pdf`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                } catch {
+                alert('Erreur lors de la génération du PDF fiscal.');
+                }
+            }}
+            >
+            📊 Export fiscal {new Date().getFullYear()}
+            </button>
+            <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
+            {showForm ? 'Annuler' : '+ Enregistrer un paiement'}
+            </button>
+        </div>
+        </div>
 
       {/* Métriques */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
@@ -244,9 +266,6 @@ const Paiements: React.FC = () => {
         {paiements.length === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
             <p style={{ color: 'var(--gris-ardoise)' }}>Aucun paiement enregistré.</p>
-            <button className="btn btn-primary" style={{ marginTop: '1rem' }} onClick={() => setShowForm(true)}>
-              Enregistrer le premier paiement
-            </button>
           </div>
         ) : (
           paiements.map(p => {

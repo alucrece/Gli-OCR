@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.models import User, Bien, Locataire, Quittance, Anomalie, Paiement
-from app.routers import auth, biens, locataires, quittances, dashboard, health, anomalies, paiements
+from app.routers import auth, biens, locataires, quittances, dashboard, health, anomalies, paiements, export
 from app.services.logger import app_logger
 import time
 
@@ -37,6 +37,7 @@ app.include_router(dashboard.router)
 app.include_router(health.router)
 app.include_router(anomalies.router)
 app.include_router(paiements.router)
+app.include_router(export.router)
 
 @app.get("/")
 def ping():
