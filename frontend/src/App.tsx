@@ -11,6 +11,7 @@ import Quittances from './pages/Quittances';
 import './index.css';
 import Monitoring from './pages/Monitoring';
 import Paiements from './pages/Paiements';
+import OCR from './pages/OCR';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -42,6 +43,7 @@ const App: React.FC = () => {
           <Route path="/quittances" element={<PrivateRoute><Quittances /></PrivateRoute>} />
           <Route path="/monitoring" element={<PrivateRoute><Monitoring /></PrivateRoute>} />
           <Route path="/paiements" element={<PrivateRoute><Paiements /></PrivateRoute>} />
+          <Route path="/ocr" element={<PrivateRoute><OCR /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </BrowserRouter>

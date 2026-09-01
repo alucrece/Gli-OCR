@@ -19,6 +19,7 @@ const Navbar: React.FC = () => {
     { path: '/quittances', label: 'Quittances', icon: '📄' },
     { path: '/monitoring', label: 'Monitoring', icon: '🔍' },
     { path: '/paiements', label: 'Paiements', icon: '💰' },
+    { path: '/ocr', label: 'Reconnaissance optique de caractères', icon: '🤖' }
   ];
 
   return (
