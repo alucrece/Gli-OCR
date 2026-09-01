@@ -11,6 +11,18 @@ from app.auth.jwt import verify_token
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
+MOIS_FR = {
+    "January": "Janvier", "February": "Février", "March": "Mars",
+    "April": "Avril", "May": "Mai", "June": "Juin",
+    "July": "Juillet", "August": "Août", "September": "Septembre",
+    "October": "Octobre", "November": "Novembre", "December": "Décembre"
+}
+
+def mois_en_fr(mois_str: str) -> str:
+    for en, fr in MOIS_FR.items():
+        mois_str = mois_str.replace(en, fr)
+    return mois_str
+
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 def get_current_user(db: Session = Depends(get_db), token_data: dict = Depends(verify_token)):
@@ -56,7 +68,7 @@ def get_dashboard(
                     })
 
             # Vérifier paiement du mois en cours
-            mois_courant = datetime.now().strftime("%B %Y")
+            mois_courant = mois_en_fr(datetime.now().strftime("%B %Y"))
             paiement = db.query(Paiement).filter(
                 Paiement.bien_id == bien.id,
                 Paiement.locataire_id == locataire_actif.id,
@@ -101,7 +113,7 @@ def get_dashboard(
     historique = []
     for i in range(5, -1, -1):
         mois_date = datetime.now() - relativedelta(months=i)
-        mois_str = mois_date.strftime("%B %Y")
+        mois_str = mois_en_fr(mois_date.strftime("%B %Y"))
         paiements_mois = db.query(Paiement).join(Bien).filter(
             Bien.owner_id == current_user.id,
             Paiement.mois == mois_str,
