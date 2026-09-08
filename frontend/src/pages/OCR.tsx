@@ -256,26 +256,44 @@ const OCR: React.FC = () => {
               <h3 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Charges enregistrées ({charges.length})</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {charges.slice(0, 5).map(c => (
-                  <div key={c.id} style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    padding: '0.75rem',
-                    backgroundColor: 'var(--blanc-casse)',
-                    borderRadius: '8px',
-                    alignItems: 'center'
-                  }}>
-                    <div>
-                      <p style={{ fontWeight: 500, fontSize: '0.9rem' }}>{c.description}</p>
-                      <p style={{ fontSize: '0.75rem', color: 'var(--gris-ardoise)' }}>
-                        🏠 {getBienAdresse(c.bien_id)}
-                        {c.date_charge && ` — ${c.date_charge}`}
-                      </p>
+                    <div key={c.id} style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        padding: '0.75rem',
+                        backgroundColor: 'var(--blanc-casse)',
+                        borderRadius: '8px',
+                        alignItems: 'center'
+                    }}>
+                        <div>
+                        <p style={{ fontWeight: 500, fontSize: '0.9rem' }}>{c.description}</p>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--gris-ardoise)' }}>
+                            🏠 {getBienAdresse(c.bien_id)}
+                            {c.date_charge && ` — ${c.date_charge}`}
+                        </p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <p style={{ fontFamily: 'var(--font-titre)', fontWeight: 600, color: 'var(--dore)' }}>
+                            {c.montant.toFixed(2)} €
+                        </p>
+                        <button
+                            className="btn btn-danger"
+                            style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
+                            onClick={async () => {
+                            if (!window.confirm('Supprimer cette charge ?')) return;
+                            try {
+                                await api.delete(`/charges/${c.id}`);
+                                const chargesRes = await api.get('/charges/');
+                                setCharges(chargesRes.data);
+                            } catch {
+                                alert('Erreur lors de la suppression.');
+                            }
+                            }}
+                        >
+                            🗑️
+                        </button>
+                        </div>
                     </div>
-                    <p style={{ fontFamily: 'var(--font-titre)', fontWeight: 600, color: 'var(--dore)' }}>
-                      {c.montant.toFixed(2)} €
-                    </p>
-                  </div>
-                ))}
+                    ))}
               </div>
             </div>
           )}

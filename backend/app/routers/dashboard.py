@@ -1,15 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import extract
 from app.database import get_db
 from app.models.bien import Bien
 from app.models.locataire import Locataire
 from app.models.user import User
 from app.models.paiement import Paiement
-from app.schemas.dashboard import DashboardResponse, BienDashboard
+from app.models.charge import Charge
 from app.auth.jwt import verify_token
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
+
+router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 MOIS_FR = {
     "January": "Janvier", "February": "Février", "March": "Mars",
@@ -23,8 +24,6 @@ def mois_en_fr(mois_str: str) -> str:
         mois_str = mois_str.replace(en, fr)
     return mois_str
 
-router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
-
 def get_current_user(db: Session = Depends(get_db), token_data: dict = Depends(verify_token)):
     user = db.query(User).filter(User.email == token_data["sub"]).first()
     if not user:
@@ -37,9 +36,25 @@ def get_dashboard(
     current_user: User = Depends(get_current_user)
 ):
     biens = db.query(Bien).filter(Bien.owner_id == current_user.id).all()
+    bien_ids = [b.id for b in biens]
+
     loyers_total = sum(b.loyer_mensuel for b in biens)
-    charges_total = sum(b.charges_mensuelles for b in biens)
-    revenu_net = loyers_total - charges_total
+    charges_locataires_total = sum(b.charges_mensuelles for b in biens)
+
+    # Charges propriétaire du mois courant (saisies via OCR)
+    mois_courant = mois_en_fr(datetime.now().strftime("%B %Y"))
+    charges_proprietaire = db.query(Charge).filter(
+        Charge.bien_id.in_(bien_ids)
+    ).all()
+
+    # Total charges propriétaire ce mois
+    charges_proprio_mois = sum(
+        c.montant for c in charges_proprietaire
+        if c.date_charge and str(datetime.now().year) in (c.date_charge or '')
+    )
+
+    # Revenu net réel
+    revenu_net = loyers_total - charges_locataires_total - charges_proprio_mois
 
     biens_dashboard = []
     nb_locataires_actifs = 0
@@ -56,7 +71,6 @@ def get_dashboard(
             locataire_nom = f"{locataire_actif.prenom} {locataire_actif.nom}"
             statut = "occupé"
 
-            # Vérifier bail expirant dans 30 jours
             if locataire_actif.date_sortie:
                 jours_restants = (locataire_actif.date_sortie - date.today()).days
                 if 0 <= jours_restants <= 30:
@@ -67,8 +81,6 @@ def get_dashboard(
                         "niveau": "warning"
                     })
 
-            # Vérifier paiement du mois en cours
-            mois_courant = mois_en_fr(datetime.now().strftime("%B %Y"))
             paiement = db.query(Paiement).filter(
                 Paiement.bien_id == bien.id,
                 Paiement.locataire_id == locataire_actif.id,
@@ -99,17 +111,22 @@ def get_dashboard(
                 "niveau": "info"
             })
 
+        # Charges propriétaire par bien
+        charges_bien = db.query(Charge).filter(Charge.bien_id == bien.id).all()
+        total_charges_bien = sum(c.montant for c in charges_bien)
+
         biens_dashboard.append({
             "id": bien.id,
             "adresse": bien.adresse,
             "ville": bien.ville,
             "loyer_mensuel": bien.loyer_mensuel,
             "charges_mensuelles": bien.charges_mensuelles,
+            "charges_proprietaire": total_charges_bien,
             "statut": statut,
             "locataire": locataire_nom
         })
 
-    # Historique des 6 derniers mois
+    # Historique 6 mois
     historique = []
     for i in range(5, -1, -1):
         mois_date = datetime.now() - relativedelta(months=i)
@@ -119,10 +136,10 @@ def get_dashboard(
             Paiement.mois == mois_str,
             Paiement.statut == "paye"
         ).all()
-        total_mois = sum(p.montant for p in paiements_mois)
+        total_loyers = sum(p.montant for p in paiements_mois)
         historique.append({
             "mois": mois_str,
-            "total": total_mois,
+            "total": total_loyers,
             "nb_paiements": len(paiements_mois)
         })
 
@@ -130,7 +147,9 @@ def get_dashboard(
         "nb_biens": len(biens),
         "nb_locataires_actifs": nb_locataires_actifs,
         "loyers_mensuels_total": loyers_total,
-        "charges_mensuelles_total": charges_total,
+        "charges_locataires_total": charges_locataires_total,
+        "charges_proprietaire_total": charges_proprio_mois,
+        "charges_mensuelles_total": charges_locataires_total,
         "revenu_net_mensuel": revenu_net,
         "taux_occupation": round((nb_locataires_actifs / len(biens) * 100) if biens else 0, 1),
         "alertes": alertes,
