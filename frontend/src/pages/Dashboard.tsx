@@ -12,13 +12,6 @@ interface BienDashboard {
   locataire: string | null;
 }
 
-interface Alerte {
-  type: string;
-  message: string;
-  bien: string;
-  niveau: string;
-}
-
 interface HistoriqueMois {
   mois: string;
   total: number;
@@ -29,10 +22,12 @@ interface DashboardData {
   nb_biens: number;
   nb_locataires_actifs: number;
   loyers_mensuels_total: number;
+  charges_locataires_total: number;
+  charges_proprietaire_total: number;
   charges_mensuelles_total: number;
   revenu_net_mensuel: number;
   taux_occupation: number;
-  alertes: Alerte[];
+
   historique_6_mois: HistoriqueMois[];
   biens: BienDashboard[];
 }
@@ -58,19 +53,6 @@ const Dashboard: React.FC = () => {
 
   if (loading) return <div className="loading">Chargement...</div>;
 
-  const alerteColor = (niveau: string) => {
-    if (niveau === 'danger') return { bg: '#FEE2E2', border: '#DC2626', text: '#991B1B' };
-    if (niveau === 'warning') return { bg: '#FEF3C7', border: '#D97706', text: '#92400E' };
-    return { bg: '#DBEAFE', border: '#3B82F6', text: '#1E40AF' };
-  };
-
-  const alerteIcon = (type: string) => {
-    if (type === 'loyer_retard') return '🚨';
-    if (type === 'loyer_manquant') return '⚠️';
-    if (type === 'bail_expire') return '📅';
-    return 'ℹ️';
-  };
-
   const maxHistorique = Math.max(...(data?.historique_6_mois.map(h => h.total) || [1]), 1);
 
   return (
@@ -80,31 +62,9 @@ const Dashboard: React.FC = () => {
         <p>Voici un aperçu de votre patrimoine locatif</p>
       </div>
 
-      {/* Alertes */}
-      {data && data.alertes.length > 0 && (
-        <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {data.alertes.map((alerte, index) => {
-            const colors = alerteColor(alerte.niveau);
-            return (
-              <div key={index} style={{
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                backgroundColor: colors.bg,
-                borderLeft: `4px solid ${colors.border}`,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem'
-              }}>
-                <span>{alerteIcon(alerte.type)}</span>
-                <p style={{ fontSize: '0.85rem', color: colors.text, fontWeight: 500 }}>
-                  {alerte.message}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
+      
+         
+   
       {/* Hero revenu net */}
       <div className="card" style={{
         marginBottom: '1.5rem',
@@ -118,7 +78,7 @@ const Dashboard: React.FC = () => {
       }}>
         <div>
           <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.5rem' }}>
-            Revenu net mensuel
+            Revenu net réel mensuel
           </p>
           <p style={{
             fontFamily: 'var(--font-titre)',
@@ -137,9 +97,15 @@ const Dashboard: React.FC = () => {
             </p>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Charges</p>
-            <p style={{ fontSize: '1.25rem', fontWeight: 500, color: '#f87171' }}>
-              -{data?.charges_mensuelles_total.toFixed(2)} €
+            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Charges locataires</p>
+            <p style={{ fontSize: '1.1rem', fontWeight: 500, color: '#f87171' }}>
+              -{data?.charges_locataires_total.toFixed(2)} €
+            </p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Charges propriétaire</p>
+            <p style={{ fontSize: '1.1rem', fontWeight: 500, color: '#f87171' }}>
+              -{data?.charges_proprietaire_total.toFixed(2)} €
             </p>
           </div>
         </div>
@@ -164,12 +130,6 @@ const Dashboard: React.FC = () => {
           <p style={{ fontSize: '0.8rem', color: 'var(--gris-ardoise)', marginBottom: '0.5rem' }}>Taux d'occupation</p>
           <p style={{ fontSize: '2rem', fontWeight: 600, color: data && data.taux_occupation >= 80 ? 'var(--vert-foret)' : 'var(--dore)' }}>
             {data?.taux_occupation}%
-          </p>
-        </div>
-        <div className="card" style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: '0.8rem', color: 'var(--gris-ardoise)', marginBottom: '0.5rem' }}>Alertes actives</p>
-          <p style={{ fontSize: '2rem', fontWeight: 600, color: data && data.alertes.length > 0 ? '#DC2626' : 'var(--vert-foret)' }}>
-            {data?.alertes.length}
           </p>
         </div>
       </div>
