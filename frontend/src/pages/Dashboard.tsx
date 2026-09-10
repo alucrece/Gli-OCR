@@ -12,12 +12,23 @@ interface BienDashboard {
   locataire: string | null;
 }
 
+interface HistoriqueMois {
+  mois: string;
+  total: number;
+  nb_paiements: number;
+}
+
 interface DashboardData {
   nb_biens: number;
   nb_locataires_actifs: number;
   loyers_mensuels_total: number;
+  charges_locataires_total: number;
+  charges_proprietaire_total: number;
   charges_mensuelles_total: number;
   revenu_net_mensuel: number;
+  taux_occupation: number;
+
+  historique_6_mois: HistoriqueMois[];
   biens: BienDashboard[];
 }
 
@@ -42,6 +53,8 @@ const Dashboard: React.FC = () => {
 
   if (loading) return <div className="loading">Chargement...</div>;
 
+  const maxHistorique = Math.max(...(data?.historique_6_mois.map(h => h.total) || [1]), 1);
+
   return (
     <div>
       <div className="page-header">
@@ -49,7 +62,10 @@ const Dashboard: React.FC = () => {
         <p>Voici un aperçu de votre patrimoine locatif</p>
       </div>
 
-      {/* Hero — revenu net */}
+      
+         
+   
+      {/* Hero revenu net */}
       <div className="card" style={{
         marginBottom: '1.5rem',
         background: 'var(--bleu-nuit)',
@@ -62,7 +78,7 @@ const Dashboard: React.FC = () => {
       }}>
         <div>
           <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.5rem' }}>
-            Revenu net mensuel
+            Revenu net réel mensuel
           </p>
           <p style={{
             fontFamily: 'var(--font-titre)',
@@ -81,9 +97,15 @@ const Dashboard: React.FC = () => {
             </p>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Charges</p>
-            <p style={{ fontSize: '1.25rem', fontWeight: 500, color: '#f87171' }}>
-              -{data?.charges_mensuelles_total.toFixed(2)} €
+            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Charges locataires</p>
+            <p style={{ fontSize: '1.1rem', fontWeight: 500, color: '#f87171' }}>
+              -{data?.charges_locataires_total.toFixed(2)} €
+            </p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Charges propriétaire</p>
+            <p style={{ fontSize: '1.1rem', fontWeight: 500, color: '#f87171' }}>
+              -{data?.charges_proprietaire_total.toFixed(2)} €
             </p>
           </div>
         </div>
@@ -97,28 +119,42 @@ const Dashboard: React.FC = () => {
         marginBottom: '1.5rem'
       }}>
         <div className="card" style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: '0.8rem', color: 'var(--gris-ardoise)', marginBottom: '0.5rem' }}>
-            Biens gérés
-          </p>
-          <p style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--bleu-nuit)' }}>
-            {data?.nb_biens}
-          </p>
+          <p style={{ fontSize: '0.8rem', color: 'var(--gris-ardoise)', marginBottom: '0.5rem' }}>Biens gérés</p>
+          <p style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--bleu-nuit)' }}>{data?.nb_biens}</p>
         </div>
         <div className="card" style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: '0.8rem', color: 'var(--gris-ardoise)', marginBottom: '0.5rem' }}>
-            Locataires actifs
-          </p>
-          <p style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--bleu-nuit)' }}>
-            {data?.nb_locataires_actifs}
-          </p>
+          <p style={{ fontSize: '0.8rem', color: 'var(--gris-ardoise)', marginBottom: '0.5rem' }}>Locataires actifs</p>
+          <p style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--bleu-nuit)' }}>{data?.nb_locataires_actifs}</p>
         </div>
         <div className="card" style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: '0.8rem', color: 'var(--gris-ardoise)', marginBottom: '0.5rem' }}>
-            Biens vacants
+          <p style={{ fontSize: '0.8rem', color: 'var(--gris-ardoise)', marginBottom: '0.5rem' }}>Taux d'occupation</p>
+          <p style={{ fontSize: '2rem', fontWeight: 600, color: data && data.taux_occupation >= 80 ? 'var(--vert-foret)' : 'var(--dore)' }}>
+            {data?.taux_occupation}%
           </p>
-          <p style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--bleu-nuit)' }}>
-            {(data?.nb_biens || 0) - (data?.nb_locataires_actifs || 0)}
-          </p>
+        </div>
+      </div>
+
+      {/* Graphique historique 6 mois */}
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <h3 style={{ marginBottom: '1.5rem', fontSize: '1rem' }}>Loyers encaissés sur les 6 derniers mois</h3>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.75rem', height: '150px' }}>
+          {data?.historique_6_mois.map((h, index) => (
+            <div key={index} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', height: '100%', justifyContent: 'flex-end' }}>
+              <p style={{ fontSize: '0.7rem', color: 'var(--gris-ardoise)', fontWeight: 500 }}>
+                {h.total > 0 ? `${h.total}€` : '-'}
+              </p>
+              <div style={{
+                width: '100%',
+                backgroundColor: h.total > 0 ? 'var(--vert-foret)' : 'var(--gris-clair)',
+                borderRadius: '4px 4px 0 0',
+                height: `${Math.max((h.total / maxHistorique) * 120, h.total > 0 ? 10 : 4)}px`,
+                transition: 'height 0.3s ease'
+              }} />
+              <p style={{ fontSize: '0.65rem', color: 'var(--gris-ardoise)', textAlign: 'center' }}>
+                {h.mois.split(' ')[0].substring(0, 3)}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -139,6 +175,7 @@ const Dashboard: React.FC = () => {
                 padding: '1rem',
                 background: 'var(--blanc-casse)',
                 borderRadius: '8px',
+                borderLeft: `4px solid ${bien.statut === 'occupé' ? 'var(--vert-foret)' : 'var(--dore)'}`,
                 flexWrap: 'wrap',
                 gap: '0.5rem'
               }}>

@@ -20,6 +20,7 @@ class LocataireUpdate(BaseModel):
     date_entree: Optional[date] = None
     date_sortie: Optional[date] = None
     depot_garantie: Optional[float] = None
+    code_acces: Optional[str] = None
 
 class LocataireResponse(BaseModel):
     id: int

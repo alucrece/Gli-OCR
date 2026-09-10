@@ -12,3 +12,5 @@ pydantic[email]
 reportlab
 pytest
 httpx
+pytest-asyncio
+python-dateutil

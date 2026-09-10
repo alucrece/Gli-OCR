@@ -6,6 +6,8 @@ from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse, Token
 from app.auth.password import hash_password, verify_password
 from app.auth.jwt import create_access_token, verify_token
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -48,3 +50,43 @@ def get_me(db: Session = Depends(get_db), token_data: dict = Depends(verify_toke
     if not user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     return user
+
+class UserUpdate(BaseModel):
+    nom: Optional[str] = None
+    prenom: Optional[str] = None
+
+class PasswordUpdate(BaseModel):
+    ancien_password: str
+    nouveau_password: str
+
+@router.put("/me", response_model=UserResponse)
+def update_me(
+    user_data: UserUpdate,
+    db: Session = Depends(get_db),
+    token_data: dict = Depends(verify_token)
+):
+    user = db.query(User).filter(User.email == token_data["sub"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    if user_data.nom:
+        user.nom = user_data.nom
+    if user_data.prenom:
+        user.prenom = user_data.prenom
+    db.commit()
+    db.refresh(user)
+    return user
+
+@router.put("/password")
+def update_password(
+    data: PasswordUpdate,
+    db: Session = Depends(get_db),
+    token_data: dict = Depends(verify_token)
+):
+    user = db.query(User).filter(User.email == token_data["sub"]).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    if not verify_password(data.ancien_password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Ancien mot de passe incorrect")
+    user.hashed_password = hash_password(data.nouveau_password)
+    db.commit()
+    return {"message": "Mot de passe modifié avec succès"}
