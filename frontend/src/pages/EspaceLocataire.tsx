@@ -62,7 +62,7 @@ const EspaceLocataire: React.FC = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [ navigate, token]);
 
   const handleLogout = () => {
     localStorage.removeItem('locataire_token');
