@@ -195,10 +195,10 @@ const OCR: React.FC = () => {
                 {file ? file.name : 'Cliquez pour sélectionner une image'}
               </p>
               <p style={{ fontSize: '0.8rem', color: 'var(--gris-ardoise)', marginTop: '0.25rem' }}>
-                PNG, JPG, JPEG acceptés
+                PNG, JPG, JPEG, PDF acceptés
               </p>
             </div>
-            <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+            <input ref={fileRef} type="file" accept="image/*,application/pdf" onChange={handleFileChange} style={{ display: 'none' }} />
 
             {preview && (
               <img src={preview} alt="Aperçu" style={{ width: '100%', borderRadius: '8px', border: '1px solid var(--gris-clair)', marginTop: '1rem' }} />

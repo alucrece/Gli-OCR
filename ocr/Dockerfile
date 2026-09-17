@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender-dev \
     libgomp1 \
+    poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -20,7 +21,8 @@ RUN pip install --no-cache-dir \
     uvicorn \
     pytesseract \
     Pillow \
-    python-multipart
+    python-multipart \
+    pdf2image
 
 COPY . .
 

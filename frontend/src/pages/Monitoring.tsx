@@ -116,7 +116,7 @@ const Monitoring: React.FC = () => {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <h2>Monitoring & Supervision</h2>
-          <p>État de l'application en temps réel — actualisation toutes les 30 secondes</p>
+          <p>État de l'application en temps réel - actualisation toutes les 30 secondes</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Annuler' : '+ Signaler une anomalie'}
